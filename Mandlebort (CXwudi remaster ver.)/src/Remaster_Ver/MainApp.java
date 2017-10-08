@@ -88,7 +88,7 @@ public class MainApp extends Application {
 		System.out.println(isEscape3(test));
 		long stop = System.nanoTime();
 		System.out.println("drawtime : " + 10e-9 * (stop - start) * 1200 * 800);
-
+		///////
 		// TODO building main application framework
 		System.out.println("Program initialization start");
 		int length = (int) (Toolkit.getDefaultToolkit().getScreenSize().getWidth() * 0.65), 
