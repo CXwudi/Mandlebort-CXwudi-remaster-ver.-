@@ -195,7 +195,7 @@ public class MainApp extends Application {
 		buttomPane.getChildren().addAll(changeRepeated, changeScale);
 		aPane.add(buttomPane, 0, 0);
 		aPane.add(drawingCanvas, 0, 1);
-		
+		/*
 		primaryStage.widthProperty().addListener(new ChangeListener<Number>() {
 
 			@Override
@@ -209,9 +209,9 @@ public class MainApp extends Application {
 				manR = manHH * drawingCanvas.getWidth() / drawingCanvas.getHeight();
 				 System.out.println("Height: " + y + " Width: " + x + " oldValue: " + o + " newValue: " + n);
 			}
-		});
+		});*/
 		primaryStage.setScene(new Scene(aPane));
-		//primaryStage.setResizable(false);
+		primaryStage.setResizable(false);
 		primaryStage.setMinHeight(600);
 		primaryStage.setMinWidth(800);
 		primaryStage.setTitle("CX无敌の最高智慧结晶 2017高清重制版---Mandelbort set by BigDecimal and JavaFX");
