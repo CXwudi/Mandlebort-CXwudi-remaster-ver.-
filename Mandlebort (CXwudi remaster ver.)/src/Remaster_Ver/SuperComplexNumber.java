@@ -1,6 +1,9 @@
 package Remaster_Ver;
 
 import java.math.*;
+import java.util.ArrayList;
+
+import com.sun.org.apache.xerces.internal.util.EntityResolver2Wrapper;
 
 public class SuperComplexNumber {// which will use BigDecimal instead of int, to break the limitation of Bitmodel!!
 
@@ -52,10 +55,17 @@ public class SuperComplexNumber {// which will use BigDecimal instead of int, to
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		SuperComplexNumber aComplexNumber = new SuperComplexNumber("3", "4",500),
-				bComplexNumber = new SuperComplexNumber("1", "2",500);
+		SuperComplexNumber aComplexNumber = new SuperComplexNumber("3", "4",50),
+				bComplexNumber = new SuperComplexNumber("1", "2",50);
 		System.out.println(aComplexNumber.add(bComplexNumber));
-		System.out.println(aComplexNumber.mult(bComplexNumber));	
+		System.out.println(aComplexNumber.mult(bComplexNumber));
+		long start = System.nanoTime();
+		ArrayList<String> arrayList = new ArrayList<>();
+		for (int i = 0; i < 100000000; i++) {
+			arrayList.add("23");
+		}
+		long stop = System.nanoTime();
+		System.out.println("drawtime : " + 10e-9 * (stop - start) * 1200 * 800);
 		
 	}
 

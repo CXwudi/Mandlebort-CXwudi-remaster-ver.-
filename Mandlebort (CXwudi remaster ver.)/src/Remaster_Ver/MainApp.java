@@ -12,12 +12,15 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 public class MainApp extends Application {
@@ -27,7 +30,7 @@ public class MainApp extends Application {
 	private Button changeRepeated = new Button("Change times"), 
 			changeScale = new Button("Change scale");
 
-	private int repeated = 4000, scale = 70;
+	private int repeated = 500, scale = 8;
 	private double manHH = 2.0, 
 			manHL = -2.0, 
 			manL ,//= manHL * drawingCanvas.getWidth() / drawingCanvas.getHeight(), 
@@ -36,14 +39,15 @@ public class MainApp extends Application {
 	private BigDecimal Xtrans = new BigDecimal("-0.7499713900591012", new MathContext(scale)), 
 			Ytrans = new BigDecimal("-0.010014291972323218", new MathContext(scale));
 
-	private double zoomPow = 0, zoom = Math.pow(2, zoomPow);
-
+	private double zoomPow = 0;
+	private BigDecimal zoom = new BigDecimal("2", new MathContext(scale)).pow((int) zoomPow, new MathContext(scale));
+	
 	// BigDecimal Mathematics Part
 	// Now, the key function!!
-	private int isEscape3(SuperComplexNumber n) {
+	private int escape3(SuperComplexNumber c1) {
 		SuperComplexNumber c = new SuperComplexNumber(scale);
-		for (int i = 0; i < repeated; i++) {
-			c = c.mult(c).add(n);
+		for (int i = 1; i <= repeated; i++) {
+			c = c.mult(c).add(c1);
 			// System.out.println(c);
 			if (c.modSquare().doubleValue() > 4) {
 				return i;
@@ -54,6 +58,40 @@ public class MainApp extends Application {
 
 	// main drawing function
 	private void DrawMandlebort() {
+		double length = drawingCanvas.getWidth(),
+				high = drawingCanvas.getHeight();
+		System.out.println(length + ", " + high);
+		int xx = 0, yy = 0;
+		MathContext mc = new MathContext(scale);
+		GraphicsContext aPen = drawingCanvas.getGraphicsContext2D(); 
+		
+		
+		for (double x = manL; x <= manR; x+= (manR - manL)/length)
+		{
+			for (double y = manHL; y <= manHH; y+= (manHH - manHL)/high)
+			{
+				
+				xx = mandelbrotToJavaCoordX(x);
+				yy = mandelbrotToJavaCoordY(y);
+				SuperComplexNumber c1 = new SuperComplexNumber((new BigDecimal(x, mc).divide(zoom, mc)).add(Xtrans, mc),
+						(new BigDecimal(y, mc).divide(zoom, mc)).add(Ytrans, mc) );
+				//System.out.println(c1.x.scale());
+				//that was the breaking news: ComplexNumber c1 = new ComplexNumber((x/zoom) + Xtrans,(y/zoom) + Ytrans);
+				int aa = escape3(c1);
+				if (aa == 0) {
+					aPen.setStroke(Color.BLACK); 
+					aPen.strokeLine(xx,yy,xx,yy);
+				} else {
+					int R = (int)Math.round((-127.5) *Math.cos( aa*4.0 /180.0*Math.PI) +127.5);
+					int G = (int)Math.round((-127.5) *Math.cos( aa*20.0/3.0  /180.0*Math.PI) +127.5);
+					int B = (int)Math.round((127.5) *Math.sin( aa*4.0 /180.0*Math.PI) +127.5);
+					Color c = Color.rgb(R, G, B);
+					aPen.setStroke(c); 
+					aPen.strokeLine(xx,yy,xx,yy);
+				}
+			}
+		}
+		
 		
 	}
 
@@ -84,8 +122,9 @@ public class MainApp extends Application {
 		// TODO here is a bunch of Mathematics testing.
 		System.out.println("Test start");
 		long start = System.nanoTime();
-		SuperComplexNumber test = new SuperComplexNumber("-0.7499713900591012", "-0.010014291972323218", scale);
-		System.out.println(isEscape3(test));
+		//SuperComplexNumber test = new SuperComplexNumber("-0.7499713900591012", "-0.010014291972323218", scale);
+		SuperComplexNumber test = new SuperComplexNumber("0.1", "0.1", scale);
+		System.out.println(escape3(test));
 		long stop = System.nanoTime();
 		System.out.println("drawtime : " + 10e-9 * (stop - start) * 1200 * 800);
 		
@@ -96,7 +135,7 @@ public class MainApp extends Application {
 		drawingCanvas = new Canvas(length, high);
 		manL = manHL * drawingCanvas.getWidth() / drawingCanvas.getHeight();
 		manR = manHH * drawingCanvas.getWidth() / drawingCanvas.getHeight();
-		
+		DrawMandlebort();
 		drawingCanvas.setOnMousePressed(new EventHandler<MouseEvent>() {
 
 			@Override
@@ -115,7 +154,7 @@ public class MainApp extends Application {
 						yy = javaToMandelbetCoordY(y);
 				System.out.println(xx + ", " + yy);
 				System.out.println(mandelbrotToJavaCoordX(xx) + ", " + mandelbrotToJavaCoordY(yy));
-				DrawMandlebort();
+				//DrawMandlebort();
 
 			}}
 		);
@@ -210,14 +249,16 @@ public class MainApp extends Application {
 				 System.out.println("Height: " + y + " Width: " + x + " oldValue: " + o + " newValue: " + n);
 			}
 		});*/
-		primaryStage.setScene(new Scene(aPane));
+		Pane name = new Pane();
+		name.getChildren().add(drawingCanvas);
+		primaryStage.setScene(new Scene(name));
 		primaryStage.setResizable(false);
 		primaryStage.setMinHeight(600);
 		primaryStage.setMinWidth(800);
 		primaryStage.setTitle("CX无敌の最高智慧结晶 2017高清重制版---Mandelbort set by BigDecimal and JavaFX");
 		primaryStage.show();
 		// first image drawing process start.
-		DrawMandlebort();
+		
 
 	}
 
