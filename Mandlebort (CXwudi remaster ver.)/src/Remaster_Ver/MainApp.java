@@ -30,14 +30,14 @@ public class MainApp extends Application {
 	private Button changeRepeated = new Button("Change times"), 
 			changeScale = new Button("Change scale");
 
-	private int repeated = 500, scale = 8;
+	private int repeated = 500, scale = 10;
 	private double manHH = 2.0, 
 			manHL = -2.0, 
 			manL ,//= manHL * drawingCanvas.getWidth() / drawingCanvas.getHeight(), 
 			manR ;//= manHH * drawingCanvas.getWidth() / drawingCanvas.getHeight();
 	// the numbers in Xtrans and Ytrans are exactly coordinate point
-	private BigDecimal Xtrans = new BigDecimal("-0.7499713900591012", new MathContext(scale)), 
-			Ytrans = new BigDecimal("-0.010014291972323218", new MathContext(scale));
+	private BigDecimal Xtrans = new BigDecimal("-0.7558928045111242", new MathContext(scale)), //-0.7499713900591012
+			Ytrans = new BigDecimal("0.06169610506399664", new MathContext(scale));//-0.010014291972323218
 
 	private double zoomPow = 0;
 	private BigDecimal zoom = new BigDecimal("2", new MathContext(scale)).pow((int) zoomPow, new MathContext(scale));
@@ -64,7 +64,8 @@ public class MainApp extends Application {
 		int xx = 0, yy = 0;
 		MathContext mc = new MathContext(scale);
 		GraphicsContext aPen = drawingCanvas.getGraphicsContext2D(); 
-		
+		aPen.setFill(Color.WHITE);         
+		aPen.fillRect(0, 0, drawingCanvas.getWidth(), drawingCanvas.getHeight()); 
 		
 		for (double x = manL; x <= manR; x+= (manR - manL)/length)
 		{
@@ -76,7 +77,9 @@ public class MainApp extends Application {
 				SuperComplexNumber c1 = new SuperComplexNumber((new BigDecimal(x, mc).divide(zoom, mc)).add(Xtrans, mc),
 						(new BigDecimal(y, mc).divide(zoom, mc)).add(Ytrans, mc) );
 				//System.out.println(c1.x.scale());
-				//that was the breaking news: ComplexNumber c1 = new ComplexNumber((x/zoom) + Xtrans,(y/zoom) + Ytrans);
+				//that was the breaking news back in high school, when I figure out how to zoom in using knowledge in IB Math 12
+				//and wrote the following one line code to solve it:
+				//ComplexNumber c1 = new ComplexNumber((x/zoom) + Xtrans,(y/zoom) + Ytrans);
 				int aa = escape3(c1);
 				if (aa == 0) {
 					aPen.setStroke(Color.BLACK); 
@@ -87,6 +90,7 @@ public class MainApp extends Application {
 					int B = (int)Math.round((127.5) *Math.sin( aa*4.0 /180.0*Math.PI) +127.5);
 					Color c = Color.rgb(R, G, B);
 					aPen.setStroke(c); 
+					aPen.setFill(c);
 					aPen.strokeLine(xx,yy,xx,yy);
 				}
 			}
@@ -126,7 +130,7 @@ public class MainApp extends Application {
 		SuperComplexNumber test = new SuperComplexNumber("0.1", "0.1", scale);
 		System.out.println(escape3(test));
 		long stop = System.nanoTime();
-		System.out.println("drawtime : " + 10e-9 * (stop - start) * 1200 * 800);
+		System.out.println("estimated drawtime : " + 10e-9 * (stop - start) * 1200 * 800);
 		
 		// TODO building main application framework
 		System.out.println("Program initialization start");
@@ -135,26 +139,36 @@ public class MainApp extends Application {
 		drawingCanvas = new Canvas(length, high);
 		manL = manHL * drawingCanvas.getWidth() / drawingCanvas.getHeight();
 		manR = manHH * drawingCanvas.getWidth() / drawingCanvas.getHeight();
-		DrawMandlebort();
+		
 		drawingCanvas.setOnMousePressed(new EventHandler<MouseEvent>() {
 
 			@Override
 			public void handle(MouseEvent event) {
 				// TODO handle mouse click event.
 				int x = (int) event.getX(), y = (int) event.getY();
+				MathContext mc = new MathContext(scale);
+				BigDecimal X = new BigDecimal("" + javaToMandelbetCoordX(x),mc).divide(zoom, mc).add(Xtrans, mc),
+						Y = new BigDecimal("" + javaToMandelbetCoordY(y),mc).divide(zoom, mc).add(Ytrans, mc);
+				Xtrans = X;
+				Ytrans = Y;
 				System.out.print(x + ", " + y + " ");
 				if (event.isPrimaryButtonDown()) { // zoom in
 					System.out.println("left clicked");
+					zoomPow ++;
+					zoom = zoom.multiply(new BigDecimal("2", mc), mc);
+					
 				} else if (event.isSecondaryButtonDown()) { // zoom out
 					System.out.println("right clicked");
+					zoomPow = 0;
+					zoom = new BigDecimal("1",mc);
 				} else if (event.isMiddleButtonDown()) { // back to origin graph
 					System.out.println("middle clicked");
+					zoomPow --;
+					zoom = zoom.divide(new BigDecimal("2", mc), mc);
 				}
-				double xx = javaToMandelbetCoordX(x),
-						yy = javaToMandelbetCoordY(y);
-				System.out.println(xx + ", " + yy);
-				System.out.println(mandelbrotToJavaCoordX(xx) + ", " + mandelbrotToJavaCoordY(yy));
-				//DrawMandlebort();
+				
+			
+				DrawMandlebort();
 
 			}}
 		);
@@ -170,11 +184,11 @@ public class MainApp extends Application {
 					inputDialog.setTitle("Input Required");
 					inputDialog.setHeaderText(null);
 					inputDialog.setContentText("Please enter the times that each point is been calculated: \n"
-							+ "(leave blank to restore default value 4000, the current value is " + repeated + ")");
+							+ "(leave blank to restore default value 500, the current value is " + repeated + ")");
 					Optional<String> result = inputDialog.showAndWait();
 					if (result.isPresent()) {
 						try {
-							change = result.get().equals("") ? 4000 : Integer.parseInt(result.get());
+							change = result.get().equals("") ? 500 : Integer.parseInt(result.get());
 							repeated = change;
 							DrawMandlebort();
 							break;
@@ -207,11 +221,11 @@ public class MainApp extends Application {
 					inputDialog.setTitle("Input Required");
 					inputDialog.setHeaderText(null);
 					inputDialog.setContentText("Please enter the scale of X and Y in complex number: \n"
-							+ "(leave blank to restore default value 70, the current value is " + scale + ")");
+							+ "(leave blank to restore default value 10, the current value is " + scale + ")");
 					Optional<String> result = inputDialog.showAndWait();
 					if (result.isPresent()) {
 						try {
-							change = result.get().equals("") ? 70 : Integer.parseInt(result.get());
+							change = result.get().equals("") ? 10 : Integer.parseInt(result.get());
 							scale = change;
 							DrawMandlebort();
 							break;
@@ -249,16 +263,14 @@ public class MainApp extends Application {
 				 System.out.println("Height: " + y + " Width: " + x + " oldValue: " + o + " newValue: " + n);
 			}
 		});*/
-		Pane name = new Pane();
-		name.getChildren().add(drawingCanvas);
-		primaryStage.setScene(new Scene(name));
+		primaryStage.setScene(new Scene(aPane));
 		primaryStage.setResizable(false);
 		primaryStage.setMinHeight(600);
 		primaryStage.setMinWidth(800);
-		primaryStage.setTitle("CX无敌の最高智慧结晶 2017高清重制版---Mandelbort set by BigDecimal and JavaFX");
+		primaryStage.setTitle("CX无敌の最高智慧结晶 2017高清重制版（failed）---Mandelbort set by BigDecimal and JavaFX");
 		primaryStage.show();
 		// first image drawing process start.
-		
+		DrawMandlebort();
 
 	}
 
